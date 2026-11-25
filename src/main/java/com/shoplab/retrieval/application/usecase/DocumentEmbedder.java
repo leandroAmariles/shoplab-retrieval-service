@@ -15,6 +15,7 @@ import com.shoplab.retrieval.domain.model.enums.IndexScope;
 import com.shoplab.retrieval.shared.exception.ExceptionUtil;
 import com.shoplab.retrieval.shared.exception.HelpdeskException;
 import com.shoplab.retrieval.shared.exception.ResponseCodeEnum;
+import java.io.Serial;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,6 +158,7 @@ public class DocumentEmbedder {
     /** Another run took the turn: nothing of this one may be stored from here on. */
     private static final class LockLost extends RuntimeException {
 
+        @Serial
         private static final long serialVersionUID = 1L;
     }
 
