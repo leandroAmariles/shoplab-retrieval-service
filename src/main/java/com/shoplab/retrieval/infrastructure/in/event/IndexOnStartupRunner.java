@@ -5,9 +5,11 @@ import com.shoplab.retrieval.application.port.in.ReindexDocumentsServicePort;
 import com.shoplab.retrieval.config.EmbeddingProperties;
 import com.shoplab.retrieval.domain.model.IndexingSummary;
 import com.shoplab.retrieval.domain.model.enums.ReindexMode;
+import java.time.Duration;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,12 +30,20 @@ public class IndexOnStartupRunner implements ApplicationRunner {
     private final IndexDocumentsServicePort indexDocuments;
     private final ReindexDocumentsServicePort reindexDocuments;
     private final EmbeddingProperties properties;
+    private final Duration retryDelay;
 
+    @Autowired
     public IndexOnStartupRunner(IndexDocumentsServicePort indexDocuments,
             ReindexDocumentsServicePort reindexDocuments, EmbeddingProperties properties) {
+        this(indexDocuments, reindexDocuments, properties, RetryWhileSkipped.DEFAULT_DELAY);
+    }
+
+    IndexOnStartupRunner(IndexDocumentsServicePort indexDocuments,
+            ReindexDocumentsServicePort reindexDocuments, EmbeddingProperties properties, Duration retryDelay) {
         this.indexDocuments = indexDocuments;
         this.reindexDocuments = reindexDocuments;
         this.properties = properties;
+        this.retryDelay = retryDelay;
     }
 
     @Override
@@ -46,6 +56,10 @@ public class IndexOnStartupRunner implements ApplicationRunner {
     }
 
     Mono<IndexingSummary> run(ReindexMode mode) {
+        return RetryWhileSkipped.run(() -> once(mode), retryDelay);
+    }
+
+    private Mono<IndexingSummary> once(ReindexMode mode) {
         return switch (mode) {
             case NONE -> indexDocuments.indexPending(false);
             case CHANGED_MODEL -> reindexDocuments.reindex(false);

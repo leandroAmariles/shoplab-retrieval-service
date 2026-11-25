@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class EmbeddingBatchesAndGuardTests {
+class EmbeddingBatchesTests {
 
     @Test
     void splitsInBatchesOfTheGivenSizeKeepingTheOrder() {
@@ -18,15 +18,5 @@ class EmbeddingBatchesAndGuardTests {
     void anEmptyListHasNoBatchesAndABigBatchHoldsEverything() {
         assertThat(EmbeddingBatches.split(List.<Integer>of(), 3)).isEmpty();
         assertThat(EmbeddingBatches.split(List.of(1, 2), 16)).containsExactly(List.of(1, 2));
-    }
-
-    @Test
-    void onlyOneRunHoldsTheTurnAtATime() {
-        IndexingGuard guard = new IndexingGuard();
-
-        assertThat(guard.tryAcquire()).isTrue();
-        assertThat(guard.tryAcquire()).isFalse();
-        guard.release();
-        assertThat(guard.tryAcquire()).isTrue();
     }
 }

@@ -23,6 +23,7 @@ import com.shoplab.retrieval.domain.model.enums.IndexScope;
 import com.shoplab.retrieval.shared.exception.ExceptionUtil;
 import com.shoplab.retrieval.shared.exception.ResponseCodeEnum;
 import com.shoplab.retrieval.support.DeterministicEmbeddingPort;
+import com.shoplab.retrieval.support.InMemoryIndexingLock;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -40,9 +41,9 @@ class IndexDocumentsUseCaseTests {
     private final EmbeddingStorePort store = mock(EmbeddingStorePort.class);
     private final EmbeddingMetricsPort metrics = mock(EmbeddingMetricsPort.class);
     private final DeterministicEmbeddingPort embedding = new DeterministicEmbeddingPort(MODEL);
-    private final IndexingGuard guard = new IndexingGuard();
+    private final InMemoryIndexingLock lock = new InMemoryIndexingLock();
     private final IndexDocumentsUseCase useCase = new IndexDocumentsUseCase(new DocumentEmbedder(store, embedding,
-            metrics, guard, new EmbeddingProperties(2, 5, false, "false")));
+            metrics, lock, new EmbeddingProperties(2, 5, false, "false")));
 
     static PendingDocument document(String source, int chunks) {
         List<ChunkToEmbed> items = IntStream.range(0, chunks)
@@ -190,7 +191,7 @@ class IndexDocumentsUseCaseTests {
 
     @Test
     void aRunThatStartsWhileAnotherIsInProgressDoesNothing() {
-        assertThat(guard.tryAcquire()).isTrue();
+        lock.takenByAnotherRun();
 
         IndexingSummary summary = useCase.indexPending(false).block();
 
@@ -207,7 +208,7 @@ class IndexDocumentsUseCaseTests {
 
         StepVerifier.create(useCase.indexPending(false)).expectError().verify();
 
-        assertThat(guard.tryAcquire()).isTrue();
+        assertThat(lock.isFree()).isTrue();
         verify(store, never()).markFailed(any(), anyString());
     }
 
@@ -223,7 +224,7 @@ class IndexDocumentsUseCaseTests {
             }
         };
         IndexDocumentsUseCase shortUseCase = new IndexDocumentsUseCase(new DocumentEmbedder(store, shortModel,
-                metrics, guard, new EmbeddingProperties(2, 5, false, "false")));
+                metrics, lock, new EmbeddingProperties(2, 5, false, "false")));
 
         IndexingSummary summary = shortUseCase.indexPending(false).block();
 

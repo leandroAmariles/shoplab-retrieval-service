@@ -1,6 +1,7 @@
 package com.shoplab.retrieval.infrastructure.in.event;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -9,6 +10,7 @@ import com.shoplab.retrieval.application.port.in.IndexDocumentsServicePort;
 import com.shoplab.retrieval.application.port.in.ReindexDocumentsServicePort;
 import com.shoplab.retrieval.config.EmbeddingProperties;
 import com.shoplab.retrieval.domain.model.IndexingSummary;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.DefaultApplicationArguments;
 import reactor.core.publisher.Mono;
@@ -58,5 +60,31 @@ class IndexOnStartupRunnerTests {
                 .run(new DefaultApplicationArguments());
 
         verify(indexDocuments).indexPending(false);
+    }
+
+    private IndexOnStartupRunner quickRunner() {
+        return new IndexOnStartupRunner(indexDocuments, reindexDocuments,
+                new EmbeddingProperties(null, null, null, null), Duration.ofMillis(5));
+    }
+
+    @Test
+    void aRestartWaitsForTheLockThatTheDeadInstanceStillHolds() throws InterruptedException {
+        when(indexDocuments.indexPending(false)).thenReturn(Mono.just(IndexingSummary.skippedRun()),
+                Mono.just(IndexingSummary.indexed(1)));
+
+        quickRunner().run(new DefaultApplicationArguments());
+        Thread.sleep(200);
+
+        verify(indexDocuments, times(2)).indexPending(false);
+    }
+
+    @Test
+    void theStartUpGivesUpAfterTheSameAttemptsAsAnUpload() throws InterruptedException {
+        when(indexDocuments.indexPending(false)).thenReturn(Mono.just(IndexingSummary.skippedRun()));
+
+        quickRunner().run(new DefaultApplicationArguments());
+        Thread.sleep(400);
+
+        verify(indexDocuments, times(12)).indexPending(false);
     }
 }
