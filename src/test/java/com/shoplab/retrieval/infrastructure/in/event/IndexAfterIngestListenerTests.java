@@ -70,6 +70,7 @@ class IndexAfterIngestListenerTests {
         listener.onDocumentIngested(EVENT);
         Thread.sleep(400);
 
-        verify(indexDocuments, times(6)).indexPending(false);
+        // 12 attempts, 10 s apart in production: longer than the 90 s a dead owner keeps the lock.
+        verify(indexDocuments, times(12)).indexPending(false);
     }
 }

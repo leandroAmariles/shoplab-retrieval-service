@@ -18,6 +18,7 @@ import com.shoplab.retrieval.domain.model.PendingDocument;
 import com.shoplab.retrieval.domain.model.enums.IndexScope;
 import com.shoplab.retrieval.shared.exception.ResponseCodeEnum;
 import com.shoplab.retrieval.support.DeterministicEmbeddingPort;
+import com.shoplab.retrieval.support.InMemoryIndexingLock;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,9 +30,9 @@ class ReindexDocumentsUseCaseTests {
     private final EmbeddingStorePort store = mock(EmbeddingStorePort.class);
     private final EmbeddingMetricsPort metrics = mock(EmbeddingMetricsPort.class);
     private final DeterministicEmbeddingPort embedding = new DeterministicEmbeddingPort(NEW_MODEL);
-    private final IndexingGuard guard = new IndexingGuard();
+    private final InMemoryIndexingLock lock = new InMemoryIndexingLock();
     private final ReindexDocumentsUseCase useCase = new ReindexDocumentsUseCase(new DocumentEmbedder(store,
-            embedding, metrics, guard, new EmbeddingProperties(16, 5, false, "false")));
+            embedding, metrics, lock, new EmbeddingProperties(16, 5, false, "false")));
 
     private void documents(IndexScope scope, PendingDocument... documents) {
         when(store.findDocuments(scope, NEW_MODEL)).thenReturn(Flux.just(documents));
@@ -80,7 +81,7 @@ class ReindexDocumentsUseCaseTests {
 
     @Test
     void itSharesTheTurnWithTheIndexing() {
-        assertThat(guard.tryAcquire()).isTrue();
+        lock.takenByAnotherRun();
 
         assertThat(useCase.reindex(false).block().skipped()).isTrue();
         verify(store, never()).findDocuments(any(), anyString());
