@@ -19,7 +19,7 @@
   "packages": {
     ".": {
       "release-type": "maven",
-      "package-name": "template-service",
+      "package-name": "retrieval-service",
       "initial-version": "0.1.0",
       "skip-snapshot": true,
       "changelog-path": "CHANGELOG.md"
