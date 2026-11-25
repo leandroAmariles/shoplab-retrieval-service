@@ -24,7 +24,7 @@
         <rest-assured.version>6.3.0</rest-assured.version>
         <blockhound.version>1.0.18.RELEASE</blockhound.version>
         <wiremock.version>3.13.2</wiremock.version>
-        <archunit.version>1.4.1</archunit.version>
+        <archunit.version>1.5.1</archunit.version>
         <jacoco.version>0.8.16</jacoco.version>
         <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
         <checkstyle.version>14.4.0</checkstyle.version>
