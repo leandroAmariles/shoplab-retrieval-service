@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   pipeline:
-    uses: leandroamariles/shoplab-ci/.github/workflows/java-service.yml@v1
+    uses: leandroamariles/shoplab-ci/.github/workflows/java-service.yml@feature/LAB-129-retrieval-service-extraction
     with:
       java-version: '21'
       coverage-threshold: 80
