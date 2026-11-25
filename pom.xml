@@ -11,9 +11,9 @@
     </parent>
 
     <groupId>com.shoplab</groupId>
-    <artifactId>template-service</artifactId>
+    <artifactId>retrieval-service</artifactId>
     <version>0.1.0</version>
-    <name>template-service</name>
+    <name>retrieval-service</name>
     <description>Plantilla oficial de los microservicios de ShopLab Helpdesk (LAB-103, corregida en LAB-129)</description>
 
     <properties>

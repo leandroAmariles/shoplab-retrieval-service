@@ -16,7 +16,7 @@ jobs:
       id-token: write
     uses: leandroAmariles/shoplab-ci/.github/workflows/publish-image.yml@v1
     with:
-      image-name: 'ghcr.io/leandroamariles/template-service'
+      image-name: 'ghcr.io/leandroamariles/retrieval-service'
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -24,9 +24,9 @@ jobs:
     needs: publish
     uses: leandroamariles/shoplab-ci/.github/workflows/deploy.yml@v1
     with:
-      service-name: 'template-service'
+      service-name: 'retrieval-service'
       image-tag: ${{ github.ref_name }}
-      overlay: 'apps/template-service/overlays/dev'
+      overlay: 'apps/retrieval-service/overlays/dev'
     secrets:
       deploy-app-id: ${{ vars.DEPLOY_APP_ID }}
       deploy-app-private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
